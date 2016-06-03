@@ -1,0 +1,8 @@
+[package]
+name = "shimmer"
+version = "0.1.0"
+authors = ["me@philpax.me"]
+
+[dependencies]
+glium = "*"
+cgmath = "*"
