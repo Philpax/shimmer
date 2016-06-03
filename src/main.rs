@@ -25,6 +25,7 @@ fn get_texture(display: &glium::backend::glutin_backend::GlutinFacade) -> glium:
     let mut pixels = vec![Pixel {r: 0, g: 0, b: 0, a: 0}; (size.0 * size.1) as usize];
 
     let fov = Rad::from(deg(90.0));
+    let line_origin = Point3::new(0.0, 0.0, 0.0);
 
     for y in 0..size.1 {
         for x in 0..size.0 {
@@ -34,13 +35,26 @@ fn get_texture(display: &glium::backend::glutin_backend::GlutinFacade) -> glium:
             let x_angle = fov * x_adj;
             let y_angle = fov * y_adj;
 
-            let dir = Basis3::from_euler(y_angle, x_angle, Rad::zero())
+            let line_dir = Basis3::from_euler(-y_angle, x_angle, Rad::zero())
                           .rotate_vector(Vector3::unit_z());
 
+            let sphere_centre = Point3::new(0.0, 0.0, 3.0);
+            let sphere_radius = 1.0;
+
+            let centres_vector = line_origin - sphere_centre;
+            let distance_determinant = line_dir.dot(centres_vector).powi(2) - centres_vector.magnitude().powi(2) + f32::powi(sphere_radius, 2);
+
+            let mut distance = 0.0;
+            if distance_determinant >= 0.0 {
+                distance = -line_dir.dot(centres_vector) - distance_determinant;
+            }
+
+            let centres_magnitude = centres_vector.magnitude();
+
             pixels[(y * size.0 + x) as usize] = Pixel {
-                r: ((dir.x * 0.5 + 0.5) * 255.0) as u8,
-                g: ((dir.y * 0.5 + 0.5) * 255.0) as u8,
-                b: ((dir.z * 0.5 + 0.5) * 255.0) as u8,
+                r: (distance / centres_magnitude * 100.0) as u8,
+                g: (distance / centres_magnitude * 255.0) as u8,
+                b: (distance / centres_magnitude * 100.0) as u8,
                 a: 255,
             };
         }
