@@ -52,13 +52,18 @@ fn get_texture(display: &glium::backend::glutin_backend::GlutinFacade) -> glium:
             let line_dir = Basis3::from_euler(-y_angle, x_angle, Rad::zero())
                                .rotate_vector(Vector3::unit_z());
 
-            let distance = root_find::secant(0.0, 1.0, 0.01, 16, |distance: f32| {
+            let distance = root_find::secant(-1.0, 1.0, 0.01, 8, |distance: f32| {
                                composite_function(line_origin + (distance * line_dir))
                            })
-                               .unwrap_or(max_distance);
+                               .unwrap_or(max_distance)
+                               .min(max_distance);
 
             // Remap a value in [min_distance, max_distance] to [1.0, 0.0]
-            let brightness = 1.0 - ((distance - min_distance) / (max_distance - min_distance));
+            let brightness = if distance < 0.0 {
+                0.0
+            } else {
+                1.0 - ((distance - min_distance) / (max_distance - min_distance))
+            };
 
             pixels[(y * size.0 + x) as usize] = Pixel {
                 r: (brightness * 255.0) as u8,
