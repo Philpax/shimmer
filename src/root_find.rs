@@ -27,6 +27,7 @@ mod tests {
 
     #[test]
     fn secant_test() {
-        assert_eq!(secant(10.0, 30.0, 0.01, 32, |x: f32| x.powi(2) - 612.0), Some(24.545454));
+        assert_eq!(secant(10.0, 30.0, 0.01, 32, |x: f32| x.powi(2) - 612.0),
+                   Some(24.545454));
     }
 }
