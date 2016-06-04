@@ -28,6 +28,12 @@ fn get_texture(display: &glium::backend::glutin_backend::GlutinFacade) -> glium:
 
     let fov = Rad::from(deg(90.0));
     let line_origin = Point3::new(0.0, 0.0, 0.0);
+    let min_distance = 0.0;
+    let max_distance = 5.0;
+
+    let sphere_centre = Point3::new(0.0, 0.0, 2.0);
+    let sphere_radius = 1.0;
+    let sphere_function = |point: Point3<f32>| (point - sphere_centre).magnitude() - sphere_radius;
 
     for y in 0..size.1 {
         for x in 0..size.0 {
@@ -40,25 +46,18 @@ fn get_texture(display: &glium::backend::glutin_backend::GlutinFacade) -> glium:
             let line_dir = Basis3::from_euler(-y_angle, x_angle, Rad::zero())
                                .rotate_vector(Vector3::unit_z());
 
-            let sphere_centre = Point3::new(0.0, 0.0, 3.0);
-            let sphere_radius = 1.0;
+            let distance = root_find::secant(0.0, 1.0, 0.01, 16, |distance: f32| {
+                               sphere_function(line_origin + (distance * line_dir))
+                           })
+                               .unwrap_or(max_distance);
 
-            let centres_vector = line_origin - sphere_centre;
-            let distance_determinant = line_dir.dot(centres_vector).powi(2) -
-                                       centres_vector.magnitude().powi(2) +
-                                       f32::powi(sphere_radius, 2);
-
-            let mut distance = 0.0;
-            if distance_determinant >= 0.0 {
-                distance = -line_dir.dot(centres_vector) - distance_determinant;
-            }
-
-            let centres_magnitude = centres_vector.magnitude();
+            // Remap a value in [min_distance, max_distance] to [1.0, 0.0]
+            let brightness = 1.0 - ((distance - min_distance) / (max_distance - min_distance));
 
             pixels[(y * size.0 + x) as usize] = Pixel {
-                r: (distance / centres_magnitude * 100.0) as u8,
-                g: (distance / centres_magnitude * 255.0) as u8,
-                b: (distance / centres_magnitude * 100.0) as u8,
+                r: (brightness * 255.0) as u8,
+                g: (brightness * 255.0) as u8,
+                b: (brightness * 255.0) as u8,
                 a: 255,
             };
         }
