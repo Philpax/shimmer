@@ -73,6 +73,14 @@ impl SignedDistance {
             self
         }
     }
+
+    pub fn subtract(self, other: SignedDistance) -> SignedDistance {
+        if -other.value > self.value {
+            SignedDistance { value: -other.value, .. other }
+        } else {
+            self
+        }
+    }
 }
 
 // Objects

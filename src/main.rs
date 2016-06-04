@@ -18,8 +18,9 @@ fn get_texture(display: &glium::backend::glutin_backend::GlutinFacade) -> glium:
     let fov = Rad::from(deg(90.0));
     let fov_horz = fov * aspect_ratio;
 
-    let line_origin = Point3::new(0.0, 1.0, -1.0);
-    let line_base_dir = Vector3::unit_z();
+    let line_origin = Point3::new(0.0, 3.0, -1.0);
+    let line_base_dir = Basis3::from_euler(Rad::from(deg(30.0)), Rad::zero(), Rad::zero())
+                            .rotate_vector(Vector3::unit_z());
     let min_distance = 0.0;
     let max_distance = 5.0;
     let enable_logging = false;
@@ -29,9 +30,15 @@ fn get_texture(display: &glium::backend::glutin_backend::GlutinFacade) -> glium:
                                   scene::Colour::new(0, 255, 0, 255));
     let sphere1 = scene::Sphere::new(Point3::new(0.0, 0.0, 2.0), 1.0, scene::Colour::white());
     let sphere2 = scene::Sphere::new(Point3::new(0.0, 1.25, 2.0), 0.5, scene::Colour::white());
+    let sphere3 = scene::Sphere::new(Point3::new(0.0, 1.5, 2.0),
+                                     0.5,
+                                     scene::Colour::new(255, 0, 0, 255));
 
     let composite_function = |point: Point3<f32>| {
-        plane.evaluate(point).union(sphere1.evaluate(point)).union(sphere2.evaluate(point))
+        plane.evaluate(point)
+             .union(sphere1.evaluate(point))
+             .union(sphere2.evaluate(point))
+             .subtract(sphere3.evaluate(point))
     };
 
     let sw = Stopwatch::start_new();
