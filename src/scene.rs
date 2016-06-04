@@ -60,7 +60,7 @@ unsafe impl PixelValue for Colour {
     }
 }
 
-pub struct Point {
+pub struct SignedDistance {
     pub value: f32,
     pub colour: Colour,
 }
@@ -68,7 +68,7 @@ pub struct Point {
 // Objects
 // Object
 pub trait Object {
-    fn evaluate(&self, point: Point3<f32>) -> Point;
+    fn evaluate(&self, point: Point3<f32>) -> SignedDistance;
 }
 
 // Sphere
@@ -89,8 +89,8 @@ impl Sphere {
 }
 
 impl Object for Sphere {
-    fn evaluate(&self, point: Point3<f32>) -> Point {
-        Point {
+    fn evaluate(&self, point: Point3<f32>) -> SignedDistance {
+        SignedDistance {
             value: (point - self.centre).magnitude() - self.radius,
             colour: self.colour,
         }
@@ -115,8 +115,8 @@ impl Plane {
 }
 
 impl Object for Plane {
-    fn evaluate(&self, point: Point3<f32>) -> Point {
-        Point {
+    fn evaluate(&self, point: Point3<f32>) -> SignedDistance {
+        SignedDistance {
             value: self.normal.extend(self.determinant).dot(point.to_homogeneous()),
             colour: self.colour,
         }

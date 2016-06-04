@@ -6,7 +6,7 @@ pub fn secant<F>(mut x0: f32,
                  max_iterations: usize,
                  f: F)
                  -> Option<f32>
-    where F: Fn(f32) -> scene::Point
+    where F: Fn(f32) -> scene::SignedDistance
 {
     let mut iteration = 0;
 
@@ -34,7 +34,7 @@ pub fn secant<F>(mut x0: f32,
 }
 
 pub fn ray_march<F>(min: f32, max: f32, coarse_step: f32, fine_step: f32, f: F) -> Option<f32>
-    where F: Fn(f32) -> scene::Point
+    where F: Fn(f32) -> scene::SignedDistance
 {
     let mut current = min;
     let mut iteration = 0;
@@ -62,7 +62,7 @@ mod tests {
     #[test]
     fn secant_test() {
         assert_eq!(secant(10.0, 30.0, 0.001, 32, |x: f32| {
-                       scene::Point {
+                       scene::SignedDistance {
                            value: x.powi(2) - 612.0,
                            colour: scene::Colour::zero(),
                        }
@@ -70,7 +70,7 @@ mod tests {
                    Some(24.738634));
 
         assert_eq!(secant(0.0, 1.0, 0.001, 32, |x: f32| {
-                       scene::Point {
+                       scene::SignedDistance {
                            value: x.powi(2) + 1.0,
                            colour: scene::Colour::zero(),
                        }
@@ -81,7 +81,7 @@ mod tests {
     #[test]
     fn ray_march_test() {
         assert_eq!(ray_march(0.0, 10.0, 0.1, 0.01, |x| {
-                       scene::Point {
+                       scene::SignedDistance {
                            value: 5.0 - x,
                            colour: scene::Colour::zero(),
                        }
@@ -89,7 +89,7 @@ mod tests {
                    Some(5.0));
 
         assert_eq!(ray_march(0.0, 10.0, 0.1, 0.01, |x| {
-                       scene::Point {
+                       scene::SignedDistance {
                            value: 12.0 - x,
                            colour: scene::Colour::zero(),
                        }
