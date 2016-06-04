@@ -6,3 +6,4 @@ authors = ["me@philpax.me"]
 [dependencies]
 glium = "*"
 cgmath = "*"
+stopwatch = "*"

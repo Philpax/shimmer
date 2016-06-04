@@ -4,6 +4,7 @@ version = "0.1.0"
 dependencies = [
  "cgmath 0.9.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "glium 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "stopwatch 0.0.7 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -426,6 +427,14 @@ dependencies = [
 name = "smallvec"
 version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "stopwatch"
+version = "0.0.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "num 0.1.32 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "tempfile"

@@ -2,6 +2,7 @@ use glium::texture::PixelValue;
 use glium::texture::ClientFormat;
 
 use std::ops::Mul;
+use cgmath::*;
 
 #[derive(Copy, Clone)]
 pub struct Colour {
@@ -62,4 +63,62 @@ unsafe impl PixelValue for Colour {
 pub struct Point {
     pub value: f32,
     pub colour: Colour,
+}
+
+// Objects
+// Object
+pub trait Object {
+    fn evaluate(&self, point: Point3<f32>) -> Point;
+}
+
+// Sphere
+pub struct Sphere {
+    centre: Point3<f32>,
+    radius: f32,
+    colour: Colour,
+}
+
+impl Sphere {
+    pub fn new(centre: Point3<f32>, radius: f32, colour: Colour) -> Sphere {
+        Sphere {
+            centre: centre,
+            radius: radius,
+            colour: colour
+        }
+    }
+}
+
+impl Object for Sphere {
+    fn evaluate(&self, point: Point3<f32>) -> Point {
+        Point {
+            value: (point - self.centre).magnitude() - self.radius,
+            colour: self.colour,
+        }
+    }
+}
+
+// Plane
+pub struct Plane {
+    normal: Vector3<f32>,
+    determinant: f32,
+    colour: Colour
+}
+
+impl Plane {
+    pub fn new(normal: Vector3<f32>, point: Point3<f32>, colour: Colour) -> Plane {
+        Plane {
+            normal: normal,
+            determinant: -(normal.x * point.x + normal.y * point.y + normal.z * point.z),
+            colour: colour,
+        }
+    }
+}
+
+impl Object for Plane {
+    fn evaluate(&self, point: Point3<f32>) -> Point {
+        Point {
+            value: self.normal.extend(self.determinant).dot(point.to_homogeneous()),
+            colour: self.colour,
+        }
+    }
 }

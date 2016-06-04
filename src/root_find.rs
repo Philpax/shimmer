@@ -33,7 +33,7 @@ pub fn secant<F>(mut x0: f32,
     Some(x1)
 }
 
-pub fn ray_march<F>(min: f32, max: f32, step: f32, f: F) -> Option<f32>
+pub fn ray_march<F>(min: f32, max: f32, coarse_step: f32, fine_step: f32, f: F) -> Option<f32>
     where F: Fn(f32) -> scene::Point
 {
     let mut current = min;
@@ -41,11 +41,14 @@ pub fn ray_march<F>(min: f32, max: f32, step: f32, f: F) -> Option<f32>
 
     while current < max {
         if f(current).value <= 0.0 {
+            while f(current).value < 0.0 {
+                current -= fine_step;
+            }
             return Some(current);
         }
 
         iteration += 1;
-        current = min + step * iteration as f32;
+        current = min + coarse_step * iteration as f32;
     }
 
     None
@@ -77,7 +80,7 @@ mod tests {
 
     #[test]
     fn ray_march_test() {
-        assert_eq!(ray_march(0.0, 10.0, 0.1, |x| {
+        assert_eq!(ray_march(0.0, 10.0, 0.1, 0.01, |x| {
                        scene::Point {
                            value: 5.0 - x,
                            colour: scene::Colour::zero(),
@@ -85,7 +88,7 @@ mod tests {
                    }),
                    Some(5.0));
 
-        assert_eq!(ray_march(0.0, 10.0, 0.1, |x| {
+        assert_eq!(ray_march(0.0, 10.0, 0.1, 0.01, |x| {
                        scene::Point {
                            value: 12.0 - x,
                            colour: scene::Colour::zero(),

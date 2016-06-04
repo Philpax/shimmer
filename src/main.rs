@@ -1,11 +1,14 @@
 #[macro_use]
 extern crate glium;
 extern crate cgmath;
+extern crate stopwatch;
 
 mod scene;
 mod root_find;
 
 use cgmath::*;
+use stopwatch::Stopwatch;
+use scene::Object;
 
 fn get_texture(display: &glium::backend::glutin_backend::GlutinFacade) -> glium::texture::Texture2d {
     let size = display.get_window().unwrap().get_inner_size_pixels().unwrap();
@@ -16,39 +19,32 @@ fn get_texture(display: &glium::backend::glutin_backend::GlutinFacade) -> glium:
     let fov_horz = fov * aspect_ratio;
 
     let line_origin = Point3::new(0.0, 1.0, -1.0);
+    let line_base_dir = Vector3::unit_z();
     let min_distance = 0.0;
     let max_distance = 5.0;
     let enable_logging = false;
 
-    let sphere_function = |point: Point3<f32>, centre: Point3<f32>, radius: f32| {
-        scene::Point {
-            value: (point - centre).magnitude() - radius,
-            colour: scene::Colour::white(),
-        }
-    };
-
-    let plane_function = |point: Point3<f32>| {
-        scene::Point {
-            value: Vector4::new(0.0, 1.0, 0.0, 0.0).dot(point.to_homogeneous()),
-            colour: scene::Colour::new(0, 255, 0, 255),
-        }
-    };
+    let plane   = scene::Plane::new(Vector3::new(0.0, 1.0, 0.0), Point3::origin(), scene::Colour::new(0, 255, 0, 255));
+    let sphere1 = scene::Sphere::new(Point3::new(0.0, 0.0, 2.0), 1.0, scene::Colour::white());
+    let sphere2 = scene::Sphere::new(Point3::new(0.0, 1.25, 2.0), 0.5, scene::Colour::white());
 
     let composite_function = |point: Point3<f32>| {
-        let mut base = plane_function(point);
+        let mut base = plane.evaluate(point);
 
-        let sphere1 = sphere_function(point, Point3::new(0.0, 0.0, 2.0), 1.0);
+        let sphere1 = sphere1.evaluate(point);
         if sphere1.value < base.value {
             base = sphere1;
         }
 
-        let sphere2 = sphere_function(point, Point3::new(0.0, 1.25, 2.0), 0.5);
+        let sphere2 = sphere2.evaluate(point);
         if sphere2.value < base.value {
             base = sphere2;
         }
 
         base
     };
+
+    let sw = Stopwatch::start_new();
 
     for y in 0..size.1 {
         for x in 0..size.0 {
@@ -59,10 +55,11 @@ fn get_texture(display: &glium::backend::glutin_backend::GlutinFacade) -> glium:
             let y_angle = fov * y_adj;
 
             let line_dir = Basis3::from_euler(-y_angle, x_angle, Rad::zero())
-                               .rotate_vector(Vector3::unit_z());
+                               .rotate_vector(line_base_dir);
 
             let distance = root_find::ray_march(min_distance,
                                                 max_distance,
+                                                0.5,
                                                 0.05,
                                                 |distance: f32| {
                                                     composite_function(line_origin +
@@ -93,6 +90,8 @@ fn get_texture(display: &glium::backend::glutin_backend::GlutinFacade) -> glium:
             pixels[(y * size.0 + x) as usize] = point.colour * brightness;
         }
     }
+
+    println!("Image took {}ms", sw.elapsed_ms());
 
     let image = glium::texture::RawImage2d::from_raw_rgba(pixels, size);
     glium::texture::Texture2d::new(display, image).unwrap()
