@@ -19,7 +19,7 @@ impl Colour {
             g: g,
             b: b,
             a: a,
-        }        
+        }
     }
 
     pub fn zero() -> Colour {
@@ -93,7 +93,7 @@ impl Sphere {
         Sphere {
             centre: centre,
             radius: radius,
-            colour: colour
+            colour: colour,
         }
     }
 }
@@ -111,7 +111,7 @@ impl Object for Sphere {
 pub struct Plane {
     normal: Vector3<f32>,
     determinant: f32,
-    colour: Colour
+    colour: Colour,
 }
 
 impl Plane {

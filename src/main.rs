@@ -24,7 +24,9 @@ fn get_texture(display: &glium::backend::glutin_backend::GlutinFacade) -> glium:
     let max_distance = 5.0;
     let enable_logging = false;
 
-    let plane   = scene::Plane::new(Vector3::new(0.0, 1.0, 0.0), Point3::origin(), scene::Colour::new(0, 255, 0, 255));
+    let plane = scene::Plane::new(Vector3::new(0.0, 1.0, 0.0),
+                                  Point3::origin(),
+                                  scene::Colour::new(0, 255, 0, 255));
     let sphere1 = scene::Sphere::new(Point3::new(0.0, 0.0, 2.0), 1.0, scene::Colour::white());
     let sphere2 = scene::Sphere::new(Point3::new(0.0, 1.25, 2.0), 0.5, scene::Colour::white());
 
