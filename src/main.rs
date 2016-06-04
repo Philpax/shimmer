@@ -2,60 +2,72 @@
 extern crate glium;
 extern crate cgmath;
 
+mod scene;
 mod root_find;
 
-use glium::texture::PixelValue;
-use glium::texture::ClientFormat;
 use cgmath::*;
-
-#[derive(Copy, Clone)]
-struct Pixel {
-    r: u8,
-    g: u8,
-    b: u8,
-    a: u8,
-}
-
-unsafe impl PixelValue for Pixel {
-    fn get_format() -> ClientFormat {
-        return ClientFormat::U8U8U8U8;
-    }
-}
 
 fn get_texture(display: &glium::backend::glutin_backend::GlutinFacade) -> glium::texture::Texture2d {
     let size = display.get_window().unwrap().get_inner_size_pixels().unwrap();
-    let mut pixels = vec![Pixel {r: 0, g: 0, b: 0, a: 0}; (size.0 * size.1) as usize];
+    let aspect_ratio = size.0 as f32 / size.1 as f32;
+    let mut pixels = vec![scene::Colour::zero(); (size.0 * size.1) as usize];
 
     let fov = Rad::from(deg(90.0));
+    let fov_horz = fov * aspect_ratio;
+
     let line_origin = Point3::new(0.0, 1.0, -1.0);
     let min_distance = 0.0;
     let max_distance = 5.0;
     let enable_logging = false;
 
-    let sphere_centre = Point3::new(0.0, 0.0, 2.0);
-    let sphere_radius = 1.0;
-    let sphere_function = |point: Point3<f32>| (point - sphere_centre).magnitude() - sphere_radius;
-
-    let plane_function = |point: Point3<f32>| {
-        Vector4::new(0.0, 1.0, 0.0, 0.0).dot(point.to_homogeneous())
+    let sphere_function = |point: Point3<f32>, centre: Point3<f32>, radius: f32| {
+        scene::Point {
+            value: (point - centre).magnitude() - radius,
+            colour: scene::Colour::white(),
+        }
     };
 
-    let composite_function = |point: Point3<f32>| plane_function(point).min(sphere_function(point));
+    let plane_function = |point: Point3<f32>| {
+        scene::Point {
+            value: Vector4::new(0.0, 1.0, 0.0, 0.0).dot(point.to_homogeneous()),
+            colour: scene::Colour::new(0, 255, 0, 255),
+        }
+    };
+
+    let composite_function = |point: Point3<f32>| {
+        let mut base = plane_function(point);
+
+        let sphere1 = sphere_function(point, Point3::new(0.0, 0.0, 2.0), 1.0);
+        if sphere1.value < base.value {
+            base = sphere1;
+        }
+
+        let sphere2 = sphere_function(point, Point3::new(0.0, 1.25, 2.0), 0.5);
+        if sphere2.value < base.value {
+            base = sphere2;
+        }
+
+        base
+    };
 
     for y in 0..size.1 {
         for x in 0..size.0 {
             let x_adj = (x as f32 / size.0 as f32) - 0.5;
             let y_adj = (y as f32 / size.1 as f32) - 0.5;
 
-            let x_angle = fov * x_adj;
+            let x_angle = fov_horz * x_adj;
             let y_angle = fov * y_adj;
 
             let line_dir = Basis3::from_euler(-y_angle, x_angle, Rad::zero())
                                .rotate_vector(Vector3::unit_z());
 
-            let distance = root_find::secant(-1.0, 1.0, 0.01, 8, |distance: f32| {
-                               composite_function(line_origin + (distance * line_dir))
-                           })
+            let distance = root_find::ray_march(min_distance,
+                                                max_distance,
+                                                0.05,
+                                                |distance: f32| {
+                                                    composite_function(line_origin +
+                                                                       (distance * line_dir))
+                                                })
                                .unwrap_or(max_distance)
                                .min(max_distance);
 
@@ -77,12 +89,8 @@ fn get_texture(display: &glium::backend::glutin_backend::GlutinFacade) -> glium:
                 }
             }
 
-            pixels[(y * size.0 + x) as usize] = Pixel {
-                r: (brightness * 255.0) as u8,
-                g: (brightness * 255.0) as u8,
-                b: (brightness * 255.0) as u8,
-                a: 255,
-            };
+            let point = composite_function(line_origin + distance * line_dir);
+            pixels[(y * size.0 + x) as usize] = point.colour * brightness;
         }
     }
 
@@ -93,7 +101,8 @@ fn get_texture(display: &glium::backend::glutin_backend::GlutinFacade) -> glium:
 fn main() {
     use glium::{DisplayBuild, Surface};
     let display = glium::glutin::WindowBuilder::new()
-                      .with_dimensions(320, 320)
+                      .with_dimensions(640, 360)
+                      .with_title("Shimmer")
                       .build_glium()
                       .unwrap();
 
