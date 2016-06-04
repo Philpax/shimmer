@@ -2,6 +2,8 @@
 extern crate glium;
 extern crate cgmath;
 
+mod root_find;
+
 use glium::texture::PixelValue;
 use glium::texture::ClientFormat;
 use cgmath::*;
