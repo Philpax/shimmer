@@ -30,6 +30,7 @@ fn get_texture(display: &glium::backend::glutin_backend::GlutinFacade) -> glium:
     let line_origin = Point3::new(0.0, 1.0, -1.0);
     let min_distance = 0.0;
     let max_distance = 5.0;
+    let enable_logging = false;
 
     let sphere_centre = Point3::new(0.0, 0.0, 2.0);
     let sphere_radius = 1.0;
@@ -64,6 +65,17 @@ fn get_texture(display: &glium::backend::glutin_backend::GlutinFacade) -> glium:
             } else {
                 1.0 - ((distance - min_distance) / (max_distance - min_distance))
             };
+
+            if enable_logging {
+                if x % 20 == 0 && y % 20 == 0 {
+                    println!("{} {} {:?}: {} {}",
+                             x_adj,
+                             y_adj,
+                             line_dir,
+                             distance,
+                             brightness);
+                }
+            }
 
             pixels[(y * size.0 + x) as usize] = Pixel {
                 r: (brightness * 255.0) as u8,
