@@ -27,13 +27,19 @@ fn get_texture(display: &glium::backend::glutin_backend::GlutinFacade) -> glium:
     let mut pixels = vec![Pixel {r: 0, g: 0, b: 0, a: 0}; (size.0 * size.1) as usize];
 
     let fov = Rad::from(deg(90.0));
-    let line_origin = Point3::new(0.0, 0.0, 0.0);
+    let line_origin = Point3::new(0.0, 1.0, -1.0);
     let min_distance = 0.0;
     let max_distance = 5.0;
 
     let sphere_centre = Point3::new(0.0, 0.0, 2.0);
     let sphere_radius = 1.0;
     let sphere_function = |point: Point3<f32>| (point - sphere_centre).magnitude() - sphere_radius;
+
+    let plane_function = |point: Point3<f32>| {
+        Vector4::new(0.0, 1.0, 0.0, 0.0).dot(point.to_homogeneous())
+    };
+
+    let composite_function = |point: Point3<f32>| plane_function(point).min(sphere_function(point));
 
     for y in 0..size.1 {
         for x in 0..size.0 {
@@ -47,7 +53,7 @@ fn get_texture(display: &glium::backend::glutin_backend::GlutinFacade) -> glium:
                                .rotate_vector(Vector3::unit_z());
 
             let distance = root_find::secant(0.0, 1.0, 0.01, 16, |distance: f32| {
-                               sphere_function(line_origin + (distance * line_dir))
+                               composite_function(line_origin + (distance * line_dir))
                            })
                                .unwrap_or(max_distance);
 
