@@ -65,6 +65,16 @@ pub struct SignedDistance {
     pub colour: Colour,
 }
 
+impl SignedDistance {
+    pub fn union(self, other: SignedDistance) -> SignedDistance {
+        if other.value < self.value {
+            other
+        } else {
+            self
+        }
+    }
+}
+
 // Objects
 // Object
 pub trait Object {

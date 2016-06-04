@@ -29,19 +29,7 @@ fn get_texture(display: &glium::backend::glutin_backend::GlutinFacade) -> glium:
     let sphere2 = scene::Sphere::new(Point3::new(0.0, 1.25, 2.0), 0.5, scene::Colour::white());
 
     let composite_function = |point: Point3<f32>| {
-        let mut base = plane.evaluate(point);
-
-        let sphere1 = sphere1.evaluate(point);
-        if sphere1.value < base.value {
-            base = sphere1;
-        }
-
-        let sphere2 = sphere2.evaluate(point);
-        if sphere2.value < base.value {
-            base = sphere2;
-        }
-
-        base
+        plane.evaluate(point).union(sphere1.evaluate(point)).union(sphere2.evaluate(point))
     };
 
     let sw = Stopwatch::start_new();
