@@ -76,7 +76,7 @@ impl SignedDistance {
 
     pub fn subtract(self, other: SignedDistance) -> SignedDistance {
         if -other.value > self.value {
-            SignedDistance { value: -other.value, .. other }
+            SignedDistance { value: -other.value, ..other }
         } else {
             self
         }
@@ -87,6 +87,7 @@ impl SignedDistance {
 // Object
 pub trait Object {
     fn evaluate(&self, point: Point3<f32>) -> SignedDistance;
+    fn get_aabb(&self) -> (Point3<f32>, Point3<f32>);
 }
 
 // Sphere
@@ -113,6 +114,11 @@ impl Object for Sphere {
             colour: self.colour,
         }
     }
+
+    fn get_aabb(&self) -> (Point3<f32>, Point3<f32>) {
+        (self.centre + Vector3::new(self.radius, self.radius, self.radius),
+         self.centre + -Vector3::new(self.radius, self.radius, self.radius))
+    }
 }
 
 // Plane
@@ -138,5 +144,13 @@ impl Object for Plane {
             value: self.normal.extend(self.determinant).dot(point.to_homogeneous()),
             colour: self.colour,
         }
+    }
+
+    fn get_aabb(&self) -> (Point3<f32>, Point3<f32>) {
+        use std::f32;
+
+        // TODO: Make work with arbitrary planes
+        (Point3::new(f32::INFINITY, 0.0, f32::INFINITY),
+         Point3::new(-f32::INFINITY, 0.0, -f32::INFINITY))
     }
 }
