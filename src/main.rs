@@ -15,7 +15,7 @@ fn get_texture(display: &glium::backend::glutin_backend::GlutinFacade) -> glium:
     let aspect_ratio = size.0 as f32 / size.1 as f32;
     let mut pixels = vec![scene::Colour::zero(); (size.0 * size.1) as usize];
 
-    let fov = Rad::from(deg(90.0));
+    let fov = Rad::from(deg(54.0));
     let fov_horz = fov * aspect_ratio;
 
     let line_origin = Point3::new(0.0, 3.0, -1.0);
